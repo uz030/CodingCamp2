@@ -1,0 +1,174 @@
+import java.awt.Color;
+import java.awt.Container;
+import java.awt.Graphics;
+import java.awt.GridLayout;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+
+public class Tetris extends JFrame{
+	private JLabel block[]= new JLabel[50]; 
+	private GPanel game = new GPanel();
+	
+	
+	public Tetris() {
+		setTitle("테트리스");
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setSize(400, 500);
+		Container c = getContentPane();
+		c.add(game);
+		setVisible(true);
+		
+		game.setFocusable(true);
+		game.requestFocus();
+	}
+	
+	class GPanel extends JPanel {
+		private GridLayout grid = new GridLayout(10, 5);
+		private int flag =1;
+		private int a = (int)(Math.random()*5);
+		private int current;
+		private int last;
+		
+		private int color;
+		private int r;
+		private int g;
+		private int b;
+		private FallingThread ft = new FallingThread();
+		private int left =0;
+		
+		private int array[] = new int[50];
+		
+		public void setColor() {
+			color = (int)(Math.random()*4);
+			switch(color) {
+			case 0:
+				r = 243;
+				g = 229;
+				b = 85;
+				break;
+			case 1:
+				r = 211;
+				g =0;
+				b =0;
+				break;
+			case 2:
+				r = 40;
+				g = 155;
+				b = 100;
+				break;
+			case 3: 
+				r =97;
+				g =130;
+				b= 214;
+				break;
+			}
+		}
+		public void newBlock() {
+			setColor();
+			
+			a = (int)(Math.random()*5);
+			current = a;
+			block[a].setBackground(new Color(r,g,b));
+		}
+		GPanel(){
+			grid.setVgap(5);
+			grid.setHgap(5);
+			setLayout(grid);
+			for(int i=0;  i<block.length; i++) {
+				block[i] = new JLabel(" ");
+				block[i].setOpaque(true);
+				block[i].setBackground(Color.WHITE);
+				add(block[i]);
+				
+				
+			}
+			setColor();
+			block[a].setBackground(new Color(r,g,b));
+			addKeyListener(new MyKeyListener());
+			
+			ft.start();
+		
+		}
+		class FallingThread extends Thread {
+			@Override
+			synchronized public void run() {
+				while(true) {
+					try{
+						sleep(200);
+						if(a+5>=block.length || block[a+5].getBackground() != Color.WHITE) {
+							newBlock();
+							if(block[current + 5].getBackground() != Color.WHITE) {
+								JOptionPane.showMessageDialog(null, "게임종료",  "Message", JOptionPane.ERROR_MESSAGE);
+								return;
+							}
+							sleep(200);
+						}
+						
+						last = a;
+						block[last].setBackground(Color.WHITE);
+						
+						a+=5;
+						current = a;
+						block[current].setBackground(new Color(r,g,b));
+						
+					}catch(InterruptedException e){
+						return;
+					}
+					
+				}
+			}
+		 }
+		class MyKeyListener extends KeyAdapter{
+			@Override
+			synchronized public void keyPressed(KeyEvent e) {
+				int keyCode = e.getKeyCode();
+				switch(keyCode){
+					case KeyEvent.VK_LEFT:
+						if(a%5 != 0) {
+							last = a;
+							block[last].setBackground(Color.WHITE);
+							a--;
+							current = a;
+							if(block[current].getBackground() == Color.WHITE){
+								block[current].setBackground(new Color(r,g,b));
+								last = current;
+							}else {
+								a++;
+								current = a;
+								block[current].setBackground(new Color(r,g,b));
+							}
+							
+						}
+						break;
+					case KeyEvent.VK_RIGHT:
+						if((a+1)% 5 != 0) {
+						last = a;
+						block[last].setBackground(Color.WHITE);
+						a++;
+						current = a;
+						if(block[current].getBackground() == Color.WHITE){
+							block[current].setBackground(new Color(r,g,b));
+							last = current;
+						}else {
+							a--;
+							current = a;
+							block[current].setBackground(new Color(r,g,b));
+						}
+						}
+						break;
+				}
+			
+			}
+		}
+	}
+
+	public static void main(String[] args) {
+		Tetris tetris = new Tetris();
+	}
+}
+
